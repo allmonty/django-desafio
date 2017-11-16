@@ -1,8 +1,8 @@
 {
-  "name": "Start on Heroku: Python",
-  "description": "A barebones Python app, which can easily be deployed to Heroku.",
+  "name": "Multi-Credit Card Challenge",
+  "description": "App to manage purchases in many credit cards",
   "image": "heroku/python",
-  "repository": "https://github.com/heroku/python-getting-started",
+  "repository": "https://github.com/allmonty/django-desafio",
   "keywords": ["python", "django" ],
   "addons": [ "heroku-postgresql" ],
   "environments": {
