@@ -123,3 +123,33 @@ class TestCreditCardsAPI_Authorized(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(numberOfCreditCardsAfter, numberOfCreditCardsBefore)
+    
+    def test_DELETE_creditcard_should_count_minus_1_in_DB(self):
+        numberOfCreditCardsBefore = len(CreditCard.objects.filter(wallet=self.wallet1))
+
+        response = self.client.delete('/api/credit-cards/'+self.creditcard2_u1.number+'/')
+
+        numberOfCreditCardsAfter = len(CreditCard.objects.filter(wallet=self.wallet1))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(numberOfCreditCardsAfter, numberOfCreditCardsBefore - 1)
+    
+    def test_DELETE_unexistent_creditcard_should_respond_404(self):
+        numberOfCreditCardsBefore = len(CreditCard.objects.filter(wallet=self.wallet1))
+
+        response = self.client.delete('/api/credit-cards/000000000000000000000/')
+
+        numberOfCreditCardsAfter = len(CreditCard.objects.filter(wallet=self.wallet1))
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(numberOfCreditCardsAfter, numberOfCreditCardsBefore)
+    
+    def test_DELETE_other_user_creditcard_should_respond_404(self):
+        numberOfCreditCardsBefore = len(CreditCard.objects.filter(wallet=self.wallet2))
+
+        response = self.client.delete('/api/credit-cards/'+self.creditcard1_u2.number+'/')
+
+        numberOfCreditCardsAfter = len(CreditCard.objects.filter(wallet=self.wallet2))
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(numberOfCreditCardsAfter, numberOfCreditCardsBefore)

@@ -65,5 +65,26 @@ class ApiCreditCards(APIView):
 			return Response({'error': True, 'msg': 'Error saving credit card', "exception": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 		credit_card_json = json.loads(serializers.serialize("json", [CreditCard.objects.get(pk=credit_card.pk),]))
 		return Response(credit_card_json)
+	
+	def delete(self, request, number=None):
+		wallet = None
+		try:
+			user = User.objects.get(username=request.user)
+			wallet = Wallet.objects.get(user=user)
+		except Exception as e:
+			return Response({'error': True, 'msg': 'Error: User/Wallet not found', "exception": str(e)}, status=status.HTTP_404_NOT_FOUND)
+
+		if number:
+			creditcard = CreditCard.objects.filter(wallet=wallet, number=number)
+			
+			if not creditcard:
+				return Response({'error': True, 'msg': 'Error: Creditcard not found in your wallet'}, status=status.HTTP_404_NOT_FOUND)
+			
+			creditcard.delete()
+			response = serializers.serialize("json", creditcard)
+		else:
+			return Response({'error': True, 'msg': 'Error: Creditcard number not provided'}, status=status.HTTP_400_BAD_REQUEST)
+		return Response(json.loads(response))
+
 
 
