@@ -5,13 +5,13 @@ from django import forms
 # Register your models here.
 
 class WalletAdmin(admin.ModelAdmin):
-    list_display = ['owner_name']
-    list_filter = ['owner_name']
+    list_display = ['owner_name', 'owner_email', 'chosen_limit']
+    list_filter = ['owner_name', 'owner_email', 'chosen_limit']
 
 admin.site.register(Wallet, WalletAdmin)
 
 class CreditCardAdmin(admin.ModelAdmin):
-    list_display = ['number', 'wallet', 'due_date', 'expiration_date', 'cvv', 'limit', 'avilable_amount']
-    list_filter = ['due_date', 'expiration_date', 'limit', 'avilable_amount', 'wallet']
+    list_display = ['number', 'wallet', 'due_date', 'expiration_date', 'cvv', 'limit', 'available_amount']
+    list_filter = ['due_date', 'expiration_date', 'limit', 'available_amount', 'wallet']
 
 admin.site.register(CreditCard, CreditCardAdmin)
