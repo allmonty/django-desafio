@@ -102,3 +102,18 @@ class TestCreditCardsAPI(TestCase):
         response = self.client.post('/api/credit-cards/', data, format='json')
 
         self.assertEqual(response.status_code, 400)
+    
+    def test_POST_create_creditcard_with_missing_creditcard_info_should_respond_400(self):
+        data = {
+            'wallet_owner_email': 'david@mailinator.com',
+            'number': '123987654',
+            # 'due_date': '2017-12-22',
+            'expiration_date': '2017-12-28',
+            'cvv': '435',
+            'limit': 1550,
+            'available_amount': 1250
+        }
+
+        response = self.client.post('/api/credit-cards/', data, format='json')
+
+        self.assertEqual(response.status_code, 400)
