@@ -3,25 +3,39 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from api.models import CreditCard, Wallet
-import json
 from django.core import serializers
 from decimal import Decimal
+import json
 
+from rest_framework import authentication, permissions
+from django.contrib.auth.models import User, Group
+from rest_framework.authtoken.models import Token
+
+from api.models import CreditCard, Wallet
 from api.wallet import Wallet_Manager
-
-from django.http import HttpResponse
 
 
 class ApiCreditCards(APIView):
 
 	renderer_classes = (JSONRenderer, )
 
+	authentication_classes = (authentication.TokenAuthentication,)
+	permission_classes = (permissions.IsAuthenticated,)
+
 	def get(self,request, number=None):
+		wallet = None
+		try:
+			user = User.objects.get(username=request.user)
+			wallet = Wallet.objects.get(user=user)
+		except Exception as e:
+			return Response({'error': True, 'msg': 'Error: User/Wallet not found', "exception": str(e)}, status=status.HTTP_404_NOT_FOUND)
+
 		if number:
-			response = serializers.serialize("json",[CreditCard.objects.get(number=number),])
+			creditcard = CreditCard.objects.filter(wallet=wallet, number=number)
+			response = serializers.serialize("json", creditcard)
 		else:
-			response = serializers.serialize("json",CreditCard.objects.all())
+			creditcards = CreditCard.objects.filter(wallet=wallet)
+			response = serializers.serialize("json", creditcards)
 		return Response(json.loads(response))
 
 	def post(self,request):
@@ -30,12 +44,10 @@ class ApiCreditCards(APIView):
 
 		wallet = None
 		try:
-			wallet = Wallet.objects.get(owner_email=body['wallet_owner_email'])
+			user = User.objects.get(username=request.user)
+			wallet = Wallet.objects.get(user=user)
 		except Exception as e:
-			return Response({'error': True, 'msg': 'Error wallet owner email missing', "exception": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-		
-		if not wallet:
-			return Response({'error': True, 'msg': 'Error saving credit card, wallet not found', "exception": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+			return Response({'error': True, 'msg': 'Error: User/Wallet not found', "exception": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
 		credit_card = None
 		try:

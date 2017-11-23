@@ -1,14 +1,15 @@
 from django.db import models
+from django.contrib.auth.models import User
+
 from decimal import Decimal
 
 
 class Wallet(models.Model):
-    owner_email = models.CharField('Owner Email', max_length=255, unique=True, default=None, null=True, blank=True)
-    owner_name = models.CharField('Owner Name', max_length=255, default=None, null=True, blank=True)
-    chosen_limit = models.DecimalField("Chosen Limit", max_digits=20, decimal_places=2, default=Decimal(0.00))
+    chosen_limit    = models.DecimalField("Chosen Limit", max_digits=20, decimal_places=2, default=Decimal(0.00))
+    user            = models.OneToOneField(User, null=True, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "%s's wallet" % (self.owner_name)
+        return "%s's wallet - limit: %s" % (self.user, self.chosen_limit)
 
 
 class CreditCard(models.Model):

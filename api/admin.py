@@ -5,8 +5,8 @@ from django import forms
 # Register your models here.
 
 class WalletAdmin(admin.ModelAdmin):
-    list_display = ['owner_name', 'owner_email', 'chosen_limit']
-    list_filter = ['owner_name', 'owner_email', 'chosen_limit']
+    list_display = ['user', 'chosen_limit']
+    list_filter = ['user', 'chosen_limit']
 
 admin.site.register(Wallet, WalletAdmin)
 
