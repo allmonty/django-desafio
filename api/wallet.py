@@ -48,7 +48,7 @@ class Wallet_Manager():
         keys = sorted(keys, reverse=True)
 
         for key in keys:
-            sorted_by_limit = sorted(groups_by_key[key], key=lambda x: x.available_amount)
+            sorted_by_limit = sorted(groups_by_key[str(key)], key=lambda x: x.available_amount)
             partial_chosen, value = Wallet_Manager.__divide_between_cards(sorted_by_limit, value)
             chosen_credit_cards += partial_chosen
             if value <= 0:

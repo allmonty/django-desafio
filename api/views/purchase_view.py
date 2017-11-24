@@ -15,15 +15,16 @@ from api.models import CreditCard, Wallet
 from api.wallet import Wallet_Manager
 
 
-def purchaseResponseJSON(wallet, maximum_limit, available_credit, value):
+def purchaseResponseJSON(wallet, chosen_cards, available_credit, value):
+		chosen_cards = json.loads(serializers.serialize("json", chosen_cards))
 		response_json = {
 						"value": value,
 						"wallet":{
 							"user": str(wallet.user),
-							"maximum_limit": maximum_limit,
 							"available_credit": available_credit,
 							"chosen_limit":	wallet.chosen_limit
-							}
+							},
+						"chosen_cards": chosen_cards
 						}
 		return response_json
 
@@ -54,14 +55,31 @@ class ApiPurchase(APIView):
 		except Exception as e:
 			return Response({'error': True, 'msg': 'Error: problem processing value', "exception": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 		
-		maximum_limit = Wallet_Manager.calculate_maximum_limit(wallet)
+		chosen_limit = wallet.chosen_limit
 		available_credit = Wallet_Manager.calculate_available_credit(wallet)
 
-		Wallet_Manager.make_purchase(wallet, maximum_limit, available_credit, value)
+		if Wallet_Manager.can_purchase(chosen_limit, available_credit, value):
 
-		wallet = Wallet.objects.get(user=user)
+			credit_cards = CreditCard.objects.filter(wallet=wallet)
 
-		wallet_json = purchaseResponseJSON(wallet, maximum_limit, available_credit, value)
-		return Response(wallet_json)
+			chosen_cards = Wallet_Manager.choose_credit_card(credit_cards, value)
+
+			auxValue = value
+			for card in chosen_cards:
+				credit = card.available_amount
+				card.available_amount -= auxValue
+				auxValue -= credit
+				card.save()
+				if auxValue <= 0:
+					break
+			
+			available_credit = Wallet_Manager.calculate_available_credit(wallet)
+
+			wallet_json = purchaseResponseJSON(wallet, chosen_cards, available_credit, value)
+			return Response(wallet_json)
+		else:
+			return Response({'error': True, 'msg': 'Error: Purchase cant be done with given value'}, status=status.HTTP_400_BAD_REQUEST)
+
+		
 
 
