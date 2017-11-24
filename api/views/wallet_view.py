@@ -16,6 +16,15 @@ from api.wallet import Wallet_Manager
 
 USERS_GROUP = "api_users"
 
+def makeWalletJSON(wallet):
+		wallet_json = {
+			"user": str(wallet.user),
+			"maximum_limit": Wallet_Manager.calculate_maximum_limit(wallet),
+			"available_credit": Wallet_Manager.calculate_available_credit(wallet),
+			"chosen_limit":	wallet.chosen_limit
+			}
+		return wallet_json
+
 class ApiWallets(APIView):
 
 	renderer_classes = (JSONRenderer, )
@@ -24,13 +33,17 @@ class ApiWallets(APIView):
 	permission_classes = (permissions.IsAuthenticated,)
 
 	def get(self, request):
+		user = None
 		try:
 			user = User.objects.get(username=request.user)
 		except Exception as e:
 			return Response({'error': True, 'msg': 'Error: User not found', "exception": str(e)}, status=status.HTTP_404_NOT_FOUND)
 		
-		response = serializers.serialize("json",[Wallet.objects.get(user=user),])
-		return Response(json.loads(response))
+		wallet = Wallet.objects.get(user=user)
+
+		wallet_json = makeWalletJSON(wallet)
+
+		return Response(wallet_json)
 
 
 class ApiCreateWallets(APIView):
@@ -78,5 +91,6 @@ class ApiCreateWallets(APIView):
 		except Exception as e:
 			return Response({'error': True, 'msg': 'Error saving wallet', "exception": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 		
-		wallet_json = json.loads(serializers.serialize("json", [Wallet.objects.get(pk=wallet.pk),]))
+		wallet_json = makeWalletJSON(wallet)
+
 		return Response(wallet_json)

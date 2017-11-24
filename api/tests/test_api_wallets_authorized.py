@@ -33,9 +33,13 @@ class TestWalletsAPI_Authorized(TestCase):
     def test_GET_wallets_should_return_right_wallet(self):
         response = self.client.get('/api/wallets/')
 
-        chosen_limit = response.data[0]["fields"]["chosen_limit"]
-        user = response.data[0]["fields"]["user"]
+        user = response.data["user"]
+        available_credit = response.data["available_credit"]
+        maximum_limit = response.data["maximum_limit"]
+        chosen_limit = response.data["chosen_limit"]
         
-        self.assertEqual(Decimal(chosen_limit), self.wallet1.chosen_limit)
-        self.assertEqual(user, self.wallet1.user.pk)
+        self.assertEqual(Decimal(available_credit), 0)
+        self.assertEqual(Decimal(maximum_limit), 0)
+        self.assertEqual(Decimal(chosen_limit), 500)
+        self.assertEqual(user, str(self.wallet1.user))
         
