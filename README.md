@@ -14,6 +14,7 @@ You need to install *Pipenv* and *Heroku CLI*
 ```
 pipenv shell  // to run the virtual environment
 heroku local  // to make heroku run it locally, normally in http://localhost:5000/
+python manage.py test --keepdb
 ```
 
 ### [Look in the Wiki](_You must have your token placed in the POST header_)
