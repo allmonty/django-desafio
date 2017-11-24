@@ -17,4 +17,4 @@ heroku local  // to make heroku run it locally, normally in http://localhost:500
 python manage.py test --keepdb
 ```
 
-### [Look in the Wiki](_You must have your token placed in the POST header_)
+### [Look in the Wiki](https://github.com/allmonty/django-desafio/wiki)
