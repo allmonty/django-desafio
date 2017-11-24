@@ -42,16 +42,16 @@ class TestCreditCardsAPI_Authorized(TestCase):
                                          expiration_date='2017-11-25',
                                          cvv='123',
                                          limit=Decimal(1000),
-                                         available_amount=Decimal(250),
+                                         available_amount=Decimal(500),
                                          wallet=self.wallet1
                                          )
         self.creditcard1_u1.save()
         self.creditcard2_u1 = CreditCard(number='000000002',
-                                         due_date='2017-11-22',
+                                         due_date='2017-11-25',
                                          expiration_date='2017-11-25',
                                          cvv='123',
                                          limit=Decimal(1000),
-                                         available_amount=Decimal(500),
+                                         available_amount=Decimal(300),
                                          wallet=self.wallet1
                                          )
         self.creditcard2_u1.save()
@@ -146,6 +146,8 @@ class TestCreditCardsAPI_Authorized(TestCase):
         self.assertIs(error_occured, True)
         self.assertEqual(new_chosen, chosen_limit_before)
     
+# ==================== can purchase ==================== #
+
     def test_can_purchase_less_than_chosen_limit_should_return_true(self):
         chosen_limit        = 1000
         available_credit    = 200
@@ -195,4 +197,117 @@ class TestCreditCardsAPI_Authorized(TestCase):
 
         self.assertIs(Wallet_Manager.can_purchase(chosen_limit, available_credit, value), True)
     
+# ==================== choose credit card ==================== #
 
+    def test_choose_credit_farther_in_the_month_should_return_card_1(self):
+        card1 = CreditCard(number='000000011', due_date='2017-11-25', available_amount=Decimal(350))
+        card2 = CreditCard(number='000000012', due_date='2017-11-22', available_amount=Decimal(350))
+        value = 100
+
+        credit_cards = [card1, card2]
+
+        self.assertEqual(Wallet_Manager.choose_credit_card(credit_cards, value), [card1])
+    
+    def test_choose_credit_farther_in_the_month_should_return_card_2(self):
+        card1 = CreditCard(number='000000011', due_date='2017-11-22', available_amount=Decimal(350))
+        card2 = CreditCard(number='000000012', due_date='2017-11-25', available_amount=Decimal(350))
+        value = 100
+
+        credit_cards = [card1, card2]
+
+        self.assertEqual(Wallet_Manager.choose_credit_card(credit_cards, value), [card2])
+    
+    def test_choose_credit_smallest_limit_when_both_has_same_due_date_should_return_card_1(self):
+        card1 = CreditCard(number='000000011', due_date='2017-11-22', available_amount=Decimal(200))
+        card2 = CreditCard(number='000000012', due_date='2017-11-22', available_amount=Decimal(350))
+        value = 100
+
+        credit_cards = [card1, card2]
+
+        self.assertEqual(Wallet_Manager.choose_credit_card(credit_cards, value), [card1])
+    
+    def test_choose_credit_smallest_limit_when_both_has_same_due_date_should_return_card_2(self):
+        card1 = CreditCard(number='000000011', due_date='2017-11-22', available_amount=Decimal(350))
+        card2 = CreditCard(number='000000012', due_date='2017-11-22', available_amount=Decimal(200))
+        value = 100
+
+        credit_cards = [card1, card2]
+
+        self.assertEqual(Wallet_Manager.choose_credit_card(credit_cards, value), [card2])
+    
+    def test_choose_credit_dividing_value_in_2_different_due_date_should_return_card1_before_card2(self):
+        card1 = CreditCard(number='000000011', due_date='2017-11-25', available_amount=Decimal(200))
+        card2 = CreditCard(number='000000012', due_date='2017-11-22', available_amount=Decimal(350))
+        value = 400
+
+        credit_cards = [card1, card2]
+
+        self.assertEqual(Wallet_Manager.choose_credit_card(credit_cards, value), [card1, card2])
+    
+    def test_choose_credit_dividing_value_in_2_different_due_date_should_return_card2_before_card1(self):
+        card1 = CreditCard(number='000000011', due_date='2017-11-21', available_amount=Decimal(200))
+        card2 = CreditCard(number='000000012', due_date='2017-11-26', available_amount=Decimal(350))
+        value = 400
+
+        credit_cards = [card1, card2]
+
+        self.assertEqual(Wallet_Manager.choose_credit_card(credit_cards, value), [card2, card1])
+    
+    def test_choose_credit_dividing_value_in_2_same_due_date_should_return_card1_before_card2(self):
+        card1 = CreditCard(number='000000011', due_date='2017-11-21', available_amount=Decimal(200))
+        card2 = CreditCard(number='000000012', due_date='2017-11-21', available_amount=Decimal(350))
+        value = 400
+
+        credit_cards = [card1, card2]
+
+        self.assertEqual(Wallet_Manager.choose_credit_card(credit_cards, value), [card1, card2])
+    
+    def test_choose_credit_dividing_value_in_3_different_due_date_should_return_cards_1_2_3__a(self):
+        card1 = CreditCard(number='000000011', due_date='2017-11-26', available_amount=Decimal(200))
+        card2 = CreditCard(number='000000012', due_date='2017-11-24', available_amount=Decimal(200))
+        card3 = CreditCard(number='000000013', due_date='2017-11-22', available_amount=Decimal(350))
+        value = 500
+
+        credit_cards = [card1, card2, card3]
+
+        self.assertEqual(Wallet_Manager.choose_credit_card(credit_cards, value), [card1, card2, card3])
+    
+    def test_choose_credit_dividing_value_in_3_different_due_date_should_return_cards_1_2_3__b(self):
+        card1 = CreditCard(number='000000011', due_date='2017-11-26', available_amount=Decimal(200))
+        card2 = CreditCard(number='000000012', due_date='2017-11-24', available_amount=Decimal(200))
+        card3 = CreditCard(number='000000013', due_date='2017-11-22', available_amount=Decimal(350))
+        value = 500
+
+        credit_cards = [card3, card1, card2]
+
+        self.assertEqual(Wallet_Manager.choose_credit_card(credit_cards, value), [card1, card2, card3])
+
+    def test_choose_credit_dividing_value_in_3_same_due_date_should_return_cards_1_2_3(self):
+        card1 = CreditCard(number='000000011', due_date='2017-11-26', available_amount=Decimal(200))
+        card2 = CreditCard(number='000000012', due_date='2017-11-26', available_amount=Decimal(200))
+        card3 = CreditCard(number='000000013', due_date='2017-11-26', available_amount=Decimal(350))
+        value = 500
+
+        credit_cards = [card1, card2, card3]
+
+        self.assertEqual(Wallet_Manager.choose_credit_card(credit_cards, value), [card1, card2, card3])
+    
+    def test_choose_credit_dividing_value_in_3_with_2_same_due_date_should_return_cards_1_2_3__a(self):
+        card1 = CreditCard(number='000000011', due_date='2017-11-26', available_amount=Decimal(200))
+        card2 = CreditCard(number='000000012', due_date='2017-11-26', available_amount=Decimal(200))
+        card3 = CreditCard(number='000000013', due_date='2017-11-23', available_amount=Decimal(350))
+        value = 500
+
+        credit_cards = [card1, card2, card3]
+
+        self.assertEqual(Wallet_Manager.choose_credit_card(credit_cards, value), [card1, card2, card3])
+    
+    def test_choose_credit_dividing_value_in_3_with_2_same_due_date_should_return_cards_1_2_3__b(self):
+        card1 = CreditCard(number='000000011', due_date='2017-11-26', available_amount=Decimal(200))
+        card2 = CreditCard(number='000000012', due_date='2017-11-23', available_amount=Decimal(200))
+        card3 = CreditCard(number='000000013', due_date='2017-11-23', available_amount=Decimal(350))
+        value = 500
+
+        credit_cards = [card1, card2, card3]
+
+        self.assertEqual(Wallet_Manager.choose_credit_card(credit_cards, value), [card1, card2, card3])

@@ -1,4 +1,5 @@
 from decimal import Decimal
+from itertools import groupby
 
 from api.models import CreditCard, Wallet
 
@@ -31,3 +32,35 @@ class Wallet_Manager():
             if value <= available_credit:
                 return True
         return False
+
+    def choose_credit_card(credit_cards, value):
+        chosen_credit_cards = []
+        sorted_credit_cards = []
+
+        keys = set([])
+        groups_by_key = {}
+        for card in credit_cards:
+            keys.add(card.due_date)
+            if card.due_date in groups_by_key:
+                groups_by_key[str(card.due_date)].append(card)
+            else:
+                groups_by_key[str(card.due_date)] = [card]
+        keys = sorted(keys, reverse=True)
+
+        for key in keys:
+            sorted_by_limit = sorted(groups_by_key[key], key=lambda x: x.available_amount)
+            partial_chosen, value = Wallet_Manager.__divide_between_cards(sorted_by_limit, value)
+            chosen_credit_cards += partial_chosen
+            if value <= 0:
+                break
+        
+        return chosen_credit_cards
+    
+    def __divide_between_cards(credit_cards, value):
+        chosen_cards = []
+        for card in credit_cards:
+            value -= card.available_amount
+            chosen_cards.append(card)
+            if value <= 0:
+                break
+        return chosen_cards, value
