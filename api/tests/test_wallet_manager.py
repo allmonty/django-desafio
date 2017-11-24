@@ -69,11 +69,11 @@ class TestCreditCardsAPI_Authorized(TestCase):
         self.client = APIClient()
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
 
-    def test_calculate_available_credit_wallet_with_2_creditcards_should_return_750(self):
-        available_credit = Wallet_Manager.calculate_available_credit(self.wallet1)
+    def test_calculate_available_credit_wallet_with_0_creditcards_should_return_0(self):
 
-        self.assertEqual(available_credit, 
-                    self.creditcard1_u1.available_amount + self.creditcard2_u1.available_amount)
+        available_credit = Wallet_Manager.calculate_available_credit(self.wallet3)
+
+        self.assertEqual(available_credit, 0)
     
     def test_calculate_available_credit_wallet_with_1_creditcards_should_return_750(self):
 
@@ -81,8 +81,26 @@ class TestCreditCardsAPI_Authorized(TestCase):
 
         self.assertEqual(available_credit, self.creditcard1_u2.available_amount)
     
-    def test_calculate_available_credit_wallet_with_0_creditcards_should_return_0(self):
+    def test_calculate_available_credit_wallet_with_2_creditcards_should_return_750(self):
+        available_credit = Wallet_Manager.calculate_available_credit(self.wallet1)
 
-        available_credit = Wallet_Manager.calculate_available_credit(self.wallet3)
+        self.assertEqual(available_credit, 
+                    self.creditcard1_u1.available_amount + self.creditcard2_u1.available_amount)
+    
+    def test_calculate_maximum_limit_wallet_with_0_creditcards_should_return_0(self):
+
+        available_credit = Wallet_Manager.calculate_maximum_limit(self.wallet3)
 
         self.assertEqual(available_credit, 0)
+
+    def test_calculate_maximum_limit_wallet_with_1_creditcards_should_return_750(self):
+
+        maximum_limit = Wallet_Manager.calculate_maximum_limit(self.wallet2)
+
+        self.assertEqual(maximum_limit, self.creditcard1_u2.limit)
+    
+    def test_calculate_maximum_limit_wallet_with_2_creditcards_should_return_750(self):
+        maximum_limit = Wallet_Manager.calculate_maximum_limit(self.wallet1)
+
+        self.assertEqual(maximum_limit, 
+                    self.creditcard1_u1.limit + self.creditcard2_u1.limit)
