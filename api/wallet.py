@@ -17,3 +17,11 @@ class Wallet_Manager():
         for credit_card in credit_cards:
             maximum_limit += credit_card.limit
         return maximum_limit
+
+    def edit_chosen_limit(wallet, value):
+        maximum_limit = Wallet_Manager.calculate_maximum_limit(wallet)
+        if value >= 0 and value <= maximum_limit:
+            wallet.chosen_limit = value
+            wallet.save(update_fields=['chosen_limit'])
+        else:
+            raise ValueError('Chosen Limit Problem: value must be (>= 0) and (<= maximum_limit)')

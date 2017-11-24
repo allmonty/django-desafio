@@ -104,3 +104,44 @@ class TestCreditCardsAPI_Authorized(TestCase):
 
         self.assertEqual(maximum_limit, 
                     self.creditcard1_u1.limit + self.creditcard2_u1.limit)
+    
+    def test_edit_chosen_limit_wallet_with_2_creditcards_to_negative_should_do_nothing(self):
+        wallet = self.wallet1
+        chosen_limit_before = wallet.chosen_limit
+        
+        error_occured = False
+        try:
+            Wallet_Manager.edit_chosen_limit(wallet, -10)
+        except ValueError as e:
+            error_occured = True
+        
+        new_chosen = Wallet.objects.get(user=self.user1).chosen_limit
+
+        self.assertIs(error_occured, True)
+        self.assertEqual(new_chosen, chosen_limit_before)
+    
+    def test_edit_chosen_limit_wallet_with_2_creditcards_half_maximum_should_edit(self):
+        wallet = self.wallet1
+        maximum_limit = Wallet_Manager.calculate_maximum_limit(wallet)
+
+        Wallet_Manager.edit_chosen_limit(wallet, maximum_limit / 2)
+        
+        new_chosen = Wallet.objects.get(user=self.user1).chosen_limit
+
+        self.assertEqual(new_chosen, maximum_limit / 2)
+    
+    def test_edit_chosen_limit_wallet_with_2_creditcards_more_than_maximum_do_nothing(self):
+        wallet = self.wallet1
+        maximum_limit = Wallet_Manager.calculate_maximum_limit(wallet)
+        chosen_limit_before = wallet.chosen_limit
+        
+        error_occured = False
+        try:
+            Wallet_Manager.edit_chosen_limit(wallet, maximum_limit * 2)
+        except ValueError as e:
+            error_occured = True
+        
+        new_chosen = Wallet.objects.get(user=self.user1).chosen_limit
+
+        self.assertIs(error_occured, True)
+        self.assertEqual(new_chosen, chosen_limit_before)
