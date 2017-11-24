@@ -33,6 +33,20 @@ class TestCreditCardsAPI_Unauthorized(TestCase):
 
         self.assertEqual(response.status_code, 401)
     
+    def test_POST_edit_creditcard_should_respond_unauthorized(self):
+        data = {
+            'number': '123987654',
+            'due_date': '2018-12-22',
+            'expiration_date': '2018-12-28',
+            'cvv': '435',
+            'limit': 1550,
+            'available_amount': 1250
+        }
+
+        response = self.client.post('/api/credit-cards/1239876542/', data, format='json')
+
+        self.assertEqual(response.status_code, 401)
+    
     def test_DELETE_creditcard_should_respond_unauthorized(self):
 
         response = self.client.delete('/api/credit-cards/123987654/')

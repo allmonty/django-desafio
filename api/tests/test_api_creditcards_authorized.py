@@ -27,7 +27,7 @@ class TestCreditCardsAPI_Authorized(TestCase):
         self.wallet2 = Wallet(user=self.user2, chosen_limit=Decimal(1000))
         self.wallet2.save()
 
-        self.creditcard1_u1 = CreditCard(number='123456789',
+        self.creditcard1_u1 = CreditCard(number='000000001',
                                       due_date='2017-11-22',
                                       expiration_date='2017-11-25',
                                       cvv='123',
@@ -36,7 +36,7 @@ class TestCreditCardsAPI_Authorized(TestCase):
                                       wallet=self.wallet1
                                       )
         self.creditcard1_u1.save()
-        self.creditcard2_u1 = CreditCard(number='987654321',
+        self.creditcard2_u1 = CreditCard(number='000000002',
                                          due_date='2017-11-22',
                                          expiration_date='2017-11-25',
                                          cvv='123',
@@ -45,7 +45,7 @@ class TestCreditCardsAPI_Authorized(TestCase):
                                          wallet=self.wallet1
                                          )
         self.creditcard2_u1.save()
-        self.creditcard1_u2 = CreditCard(number='456789123',
+        self.creditcard1_u2 = CreditCard(number='000000003',
                                          due_date='2017-11-22',
                                          expiration_date='2017-11-25',
                                          cvv='123',
@@ -90,7 +90,7 @@ class TestCreditCardsAPI_Authorized(TestCase):
         numberOfCreditCardsBefore = len(CreditCard.objects.filter(wallet=self.wallet1))
 
         data = {
-            'number'            : '123987654',
+            'number'            : '000000004',
             'due_date'          : '2018-12-22',
             'expiration_date'   : '2018-12-28',
             'cvv'               : '435',
@@ -109,7 +109,7 @@ class TestCreditCardsAPI_Authorized(TestCase):
         numberOfCreditCardsBefore = len(CreditCard.objects.filter(wallet=self.wallet1))
 
         data = {
-            'number': '123987654',
+            'number': '000000004',
             # 'due_date': '2017-12-22',
             'expiration_date': '2017-12-28',
             'cvv': '435',
@@ -153,3 +153,48 @@ class TestCreditCardsAPI_Authorized(TestCase):
 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(numberOfCreditCardsAfter, numberOfCreditCardsBefore)
+
+    def test_POST_edit_creditcard_due_date_of_unexistent_creditcard_should_respond_400(self):
+        data = {
+            'due_date': '2018-12-23'
+        }
+
+        response = self.client.post('/api/credit-cards/00000000000000000/', data, format='json')
+
+        self.assertEqual(response.status_code, 400)
+    
+    def test_POST_edit_creditcard_unexistent_attribute_should_respond_200(self):
+        data = {
+            'teste': '2018-12-23'
+        }
+
+        response = self.client.post('/api/credit-cards/'+self.creditcard1_u1.number+'/', data, format='json')
+        
+        self.assertEqual(response.status_code, 400)
+
+    def test_POST_edit_creditcard_due_date_should_respond_200(self):
+        data = {
+            'due_date': '2018-12-23'
+        }
+
+        response = self.client.post('/api/credit-cards/'+self.creditcard1_u1.number+'/', data, format='json')
+
+        credit_card = CreditCard.objects.get(number=self.creditcard1_u1.number)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(str(credit_card.due_date), data['due_date'])
+    
+    def test_POST_edit_creditcard_limit_and_available_amount_should_respond_200(self):
+        data = {
+            'limit': self.creditcard1_u1.limit * 2,
+            'available_amount': self.creditcard1_u1.available_amount * 2,
+        }
+
+        response = self.client.post(
+            '/api/credit-cards/' + self.creditcard1_u1.number + '/', data, format='json')
+
+        credit_card = CreditCard.objects.get(number=self.creditcard1_u1.number)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(credit_card.limit, data['limit'])
+        self.assertEqual(credit_card.available_amount, data['available_amount'])

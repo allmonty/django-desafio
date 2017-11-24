@@ -13,7 +13,7 @@ class Wallet(models.Model):
 
 
 class CreditCard(models.Model):
-    number          = models.CharField('Number', max_length=25, default=None, null=True, blank=True)
+    number          = models.CharField('Number', max_length=25, unique=True, default=None, null=True, blank=True)
     due_date        = models.DateField('Due date', default=None, null=True, blank=True)
     expiration_date = models.DateField('Exp date', default=None, null=True, blank=True)
     cvv             = models.CharField('CVV', max_length=5, default=None, null=True, blank=True)
