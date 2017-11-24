@@ -25,3 +25,9 @@ class Wallet_Manager():
             wallet.save(update_fields=['chosen_limit'])
         else:
             raise ValueError('Chosen Limit Problem: value must be (>= 0) and (<= maximum_limit)')
+
+    def can_purchase(chosen_limit, available_credit, value):
+        if value > 0 and value <= chosen_limit:
+            if value <= available_credit:
+                return True
+        return False

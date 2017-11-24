@@ -16,7 +16,7 @@ class TestCreditCardsAPI_Authorized(TestCase):
                           first_name="test1",
                           last_name="man")
         self.user1.save()
-        self.wallet1 = Wallet(user=self.user1, chosen_limit=Decimal(500))
+        self.wallet1 = Wallet(user=self.user1)
         self.wallet1.save()
 
         self.user2 = User(username="testman2",
@@ -25,7 +25,7 @@ class TestCreditCardsAPI_Authorized(TestCase):
                           first_name="test2",
                           last_name="man")
         self.user2.save()
-        self.wallet2 = Wallet(user=self.user2, chosen_limit=Decimal(1000))
+        self.wallet2 = Wallet(user=self.user2)
         self.wallet2.save()
 
         self.user3 = User(username="testman3",
@@ -34,7 +34,7 @@ class TestCreditCardsAPI_Authorized(TestCase):
                           first_name="test3",
                           last_name="man")
         self.user3.save()
-        self.wallet3 = Wallet(user=self.user3, chosen_limit=Decimal(1000))
+        self.wallet3 = Wallet(user=self.user3)
         self.wallet3.save()
 
         self.creditcard1_u1 = CreditCard(number='000000001',
@@ -145,3 +145,54 @@ class TestCreditCardsAPI_Authorized(TestCase):
 
         self.assertIs(error_occured, True)
         self.assertEqual(new_chosen, chosen_limit_before)
+    
+    def test_can_purchase_less_than_chosen_limit_should_return_true(self):
+        chosen_limit        = 1000
+        available_credit    = 200
+        value               = 100
+
+        self.assertIs(Wallet_Manager.can_purchase(chosen_limit, available_credit, value), True)
+    
+    def test_can_purchase_equal_chosen_limit_should_return_true(self):
+        chosen_limit        = 1000
+        available_credit    = 1500
+        value               = 1000
+
+        self.assertIs(Wallet_Manager.can_purchase(chosen_limit, available_credit, value), True)
+    
+    def test_can_purchase_more_than_chosen_limit_should_return_false(self):
+        chosen_limit        = 1000
+        available_credit    = 200
+        value               = 2000
+
+        self.assertIs(Wallet_Manager.can_purchase(chosen_limit, available_credit, value), False)
+    
+    def test_can_purchase_negative_value_should_return_false(self):
+        chosen_limit = 1000
+        available_credit = 200
+        value = -100
+
+        self.assertIs(Wallet_Manager.can_purchase(chosen_limit, available_credit, value), False)
+    
+    def test_can_purchase_more_than_available_credit_should_return_false(self):
+        chosen_limit        = 1000
+        available_credit    = 200
+        value               = 250
+
+        self.assertIs(Wallet_Manager.can_purchase(chosen_limit, available_credit, value), False)
+    
+    def test_can_purchase_equal_available_credit_should_return_True(self):
+        chosen_limit        = 1000
+        available_credit    = 200
+        value               = 200
+
+        self.assertIs(Wallet_Manager.can_purchase(chosen_limit, available_credit, value), True)
+    
+    def test_can_purchase_less_than_available_credit_should_return_True(self):
+        chosen_limit        = 1000
+        available_credit    = 200
+        value               = 100
+
+        self.assertIs(Wallet_Manager.can_purchase(chosen_limit, available_credit, value), True)
+    
+
