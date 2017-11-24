@@ -42,7 +42,28 @@ class ApiWallets(APIView):
 		wallet = Wallet.objects.get(user=user)
 
 		wallet_json = makeWalletJSON(wallet)
+		return Response(wallet_json)
 
+	def post(self, request):
+		body_unicode = request.body.decode('utf-8')
+		body = json.loads(body_unicode)
+
+		user = None
+		try:
+			user = User.objects.get(username=request.user)
+		except Exception as e:
+			return Response({'error': True, 'msg': 'Error: User not found', "exception": str(e)}, status=status.HTTP_404_NOT_FOUND)
+
+		wallet = Wallet.objects.get(user=user)
+
+		try:
+			new_chosen_limit = body['chosen_limit']
+			Wallet_Manager.edit_chosen_limit(wallet, new_chosen_limit)
+		except Exception as e:
+			return Response({'error': True, 'msg': 'Error: problem updating chosen limit', "exception": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+		wallet_json = makeWalletJSON(wallet)
 		return Response(wallet_json)
 
 
